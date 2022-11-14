@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <title>Home page</title>
+    </head>
+    <body>
+        <h1>Hello from Home Page</h1>
+        <div>
+            {{ range . }}
+            <span>
+                {{ .Name }}
+            </span>
+            <br/>
+            {{ end }}
+        </div>
+        <form method="POST" action="/books">
+
+        </form>
+    </body>
+</html>
