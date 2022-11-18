@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Покупка</title>
+</head>
+<body>
+<div>
+    <h3>Покупка</h3>
+    <script>
+        function bought() {
+            alert('покупка совершена')
+        }
+    </script>
+    <form method="post">
+        <input type="hidden" value="{{ .productId}}" name="productId"/>
+        <p>Введите свое имя </p>
+        <input type="text" name="Person"/>
+        <br>
+        <p>Введите адрес доставки:</p>
+        <input type="text" name="Address"/>
+        <br>
+        <input type="submit" value="Отправить" onclick="bought()"/>
+    </form>
+</div>
+</body>
+</html>

@@ -3,6 +3,7 @@ package app
 import (
 	"example.com/internal/cntr"
 	"example.com/internal/config"
+	"example.com/internal/mpr"
 	"example.com/internal/server"
 	"example.com/internal/srv"
 	"example.com/internal/strg"
@@ -11,34 +12,23 @@ import (
 	"os"
 )
 
-var (
-	indexController    cntr.IndexController
-	purchaseController cntr.PurchaseController
-)
-
-var (
-	purchaseService srv.IPurchaseService
-	productService  srv.IProductService
-)
-
-var (
-	purchaseRepository strg.IPurchaseRepository
-	productRepository  strg.IProductRepository
-)
-
 func Run(pathToConfig string) {
 	appConfig := getAppConfig(pathToConfig)
 	db := strg.InitDB(appConfig.DBConfig)
 	defer db.Close()
 
-	purchaseRepository = strg.PurchaseRepository{DB: db}
-	productRepository = strg.ProductRepository{DB: db}
+	purchaseMapper := mpr.PurchaseMapper{}
 
-	purchaseService = srv.PurchaseService{PurchaseRepository: purchaseRepository}
-	productService = srv.ProductService{ProductRepository: productRepository}
+	purchaseRepository := strg.PurchaseRepository{DB: db}
+	productRepository := strg.ProductRepository{DB: db}
 
-	indexController = cntr.IndexController{ProductService: productService}
-	purchaseController = cntr.PurchaseController{PurchaseService: purchaseService}
+	purchaseService := srv.PurchaseService{PurchaseRepository: purchaseRepository}
+	productService := srv.ProductService{ProductRepository: productRepository}
+
+	indexController := cntr.IndexController{ProductService: productService}
+	purchaseController := cntr.PurchaseController{
+		PurchaseService: purchaseService,
+		Mapper:          purchaseMapper}
 
 	serverApp := server.Server{
 		IndexController:    indexController,

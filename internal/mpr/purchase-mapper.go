@@ -15,9 +15,9 @@ type PurchaseMapper struct {
 
 func (p PurchaseMapper) FromCreateDto(dto *dto.PurchaseCreate) *entity.Purchase {
 	purchase := entity.Purchase{
-		Product: entity.Product{Id: uuid.MustParse(dto.ProductId)},
-		Person:  dto.Person,
-		Address: dto.Address,
+		Product: entity.Product{Id: uuid.MustParse(*dto.ProductId)},
+		Person:  *dto.Person,
+		Address: *dto.Address,
 	}
 	return &purchase
 }

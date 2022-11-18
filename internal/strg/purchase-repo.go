@@ -3,6 +3,7 @@ package strg
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"example.com/internal/domain/entity"
 	"github.com/google/uuid"
@@ -88,7 +89,7 @@ func (p PurchaseRepository) Create(purchase *entity.Purchase) (*entity.Purchase,
 	}
 	defer stmt.Close()
 
-	r := stmt.QueryRow(purchase.Id, purchase.Person, purchase.Address, purchase.Date, purchase.Product.Id)
+	r := stmt.QueryRow(purchase.Id, purchase.Person, purchase.Address, time.Now(), purchase.Product.Id)
 
 	var created entity.Purchase
 	if err := r.Scan(&created.Id, &created.Person, &created.Address, &created.Date, &created.Product.Id); err != nil {

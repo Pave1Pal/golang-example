@@ -37,5 +37,7 @@ func initServer(conf *config.ServerConfig, router *gin.Engine) *http.Server {
 
 func (s Server) matchPaths(router *gin.Engine) {
 	router.GET("/", s.IndexController.IndexPage)
-	router.POST("/purchase", s.PurchaseController.CreateFromForm)
+	router.POST("/", s.IndexController.IndexPage)
+	router.GET("/buy/:productId", s.PurchaseController.GetBuyForm)
+	router.POST("/buy/:productId", s.PurchaseController.CreateFromForm)
 }
