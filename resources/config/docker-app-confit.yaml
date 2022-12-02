@@ -1,0 +1,14 @@
+dbconnection:
+  host: db
+  port: 5432
+  password: postgres
+  username: postgres
+  dbname: golang_db
+  driver-name: postgres
+  migration-files-url: 'file:///go/src/resources/migration'
+  sslmode: disable
+
+server:
+  host: shop
+  port: 8080
+  templates: '/go/src/resources/static/templates/'
