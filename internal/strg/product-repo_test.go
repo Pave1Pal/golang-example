@@ -82,7 +82,7 @@ func TestFindAllProducts(t *testing.T) {
 	clearProudctTable(db)
 	insertProducts(db)
 
-	prdRepo = ProductRepository{DB: db}
+	prdRepo = NewProductRepository(db)
 	prds, err := prdRepo.FindAll()
 	if err != nil {
 		log.Fatal("test: " + err.Error())
@@ -100,7 +100,7 @@ func TestFindProductByID(t *testing.T) {
 	defer db.Close()
 	clearProudctTable(db)
 	createdID := insertOneProduct(db)
-	prdRepo = ProductRepository{DB: db}
+	prdRepo = NewProductRepository(db)
 
 	p, err := prdRepo.FindById(createdID)
 	if err != nil {
@@ -119,7 +119,7 @@ func TestDelete(t *testing.T) {
 	clearProudctTable(db)
 	createdID := insertOneProduct(db)
 
-	prdRepo = ProductRepository{DB: db}
+	prdRepo = NewProductRepository(db)
 
 	deletedID, err := prdRepo.Delete(createdID)
 	if err != nil {
@@ -138,7 +138,7 @@ func TestUpdate(t *testing.T) {
 	defer db.Close()
 	clearProudctTable(db)
 	targetID := insertOneProduct(db)
-	rep = ProductRepository{DB: db}
+	rep = NewProductRepository(db)
 
 	newName := "updated"
 	newPrice := int64(4000)
