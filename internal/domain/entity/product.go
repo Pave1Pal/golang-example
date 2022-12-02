@@ -3,7 +3,7 @@ package entity
 import "github.com/google/uuid"
 
 type Product struct {
-	Id    uuid.UUID
-	Price int64
-	Name  string
+	Id    uuid.UUID `json:"id" db:"id"`
+	Price int64     `json:"price" db:"price"`
+	Name  string    `json:"name" db:"name"`
 }

@@ -7,28 +7,29 @@ import (
 )
 
 type IPurchaseService interface {
-	//find all purchase
+	// FindAll find all purchase
 	FindAll() ([]entity.Purchase, error)
 
-	//find purchase by id
+	// FindById find purchase by id
 	FindById(id uuid.UUID) (*entity.Purchase, error)
 
-	//create purchase
+	//Create purchase
 	Create(purchase *entity.Purchase) (*entity.Purchase, error)
 
-	//update purchase with "id", take purchase fileds for update
+	// Update purchase with "id", take purchase fileds for update
 	Update(id uuid.UUID, product *entity.Purchase) (*entity.Purchase, error)
 
-	//deleate product by "id"
+	// Delete product by "id"
 	Delete(id uuid.UUID) (*uuid.UUID, error)
 }
 
 type PurchaseService struct {
-	PurchaseRepository strg.IPurchaseRepository
+	cartService        ICartService
+	purchaseRepository strg.IPurchaseRepository
 }
 
 func (p PurchaseService) FindAll() ([]entity.Purchase, error) {
-	all, err := p.PurchaseRepository.FindAll()
+	all, err := p.purchaseRepository.FindAll()
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func (p PurchaseService) FindAll() ([]entity.Purchase, error) {
 }
 
 func (p PurchaseService) FindById(id uuid.UUID) (*entity.Purchase, error) {
-	purchase, err := p.PurchaseRepository.FindById(id)
+	purchase, err := p.purchaseRepository.FindById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -44,16 +45,23 @@ func (p PurchaseService) FindById(id uuid.UUID) (*entity.Purchase, error) {
 }
 
 func (p PurchaseService) Create(purchase *entity.Purchase) (*entity.Purchase, error) {
-	created, err := p.PurchaseRepository.Create(purchase)
+	createdCart, err := p.cartService.Create(&purchase.Cart)
 	if err != nil {
 		return nil, err
 	}
+
+	purchase.Cart.Id = createdCart.Id
+	created, err := p.purchaseRepository.Create(purchase)
+	if err != nil {
+		return nil, err
+	}
+
 	return created, err
 }
 
 func (p PurchaseService) Update(id uuid.UUID, product *entity.Purchase) (*entity.Purchase, error) {
 	product.Id = id
-	updated, err := p.PurchaseRepository.Update(product)
+	updated, err := p.purchaseRepository.Update(product)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +69,18 @@ func (p PurchaseService) Update(id uuid.UUID, product *entity.Purchase) (*entity
 }
 
 func (p PurchaseService) Delete(id uuid.UUID) (*uuid.UUID, error) {
-	deleted, err := p.PurchaseRepository.Delete(id)
+	deleted, err := p.purchaseRepository.Delete(id)
 	if err != nil {
 		return nil, err
 	}
 	return deleted, nil
+}
+
+func NewPurchaseService(
+	cartService *ICartService,
+	purchaseRepository *strg.IPurchaseRepository) IPurchaseService {
+
+	return &PurchaseService{
+		cartService:        *cartService,
+		purchaseRepository: *purchaseRepository}
 }

@@ -1,7 +1,7 @@
 package dto
 
 type PurchaseCreate struct {
-	ProductId *string `form:"productId" binding:"required"`
-	Person    *string `from:"person" binding:"required"`
-	Address   *string `from:"address" binding:"required"`
+	Cart    CartCreate `json:"cart" binding:"required"`
+	Person  string     `json:"person" binding:"required"`
+	Address string     `json:"address" binding:"required"`
 }

@@ -7,9 +7,9 @@ import (
 )
 
 type Purchase struct {
-	Id      uuid.UUID
-	Person  string
-	Address string
-	Date    time.Time
-	Product Product
+	Id      uuid.UUID `json:"id"`
+	Person  string    `json:"person"`
+	Address string    `json:"address"`
+	Date    time.Time `json:"date"`
+	Cart    Cart      `json:"shopingCart"`
 }
