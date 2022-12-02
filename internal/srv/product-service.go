@@ -24,11 +24,11 @@ type IProductService interface {
 }
 
 type ProductService struct {
-	ProductRepository strg.IProductRepository
+	productRepository strg.IProductRepository
 }
 
 func (p ProductService) FindAll() ([]entity.Product, error) {
-	all, err := p.ProductRepository.FindAll()
+	all, err := p.productRepository.FindAll()
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (p ProductService) FindAll() ([]entity.Product, error) {
 }
 
 func (p ProductService) FindById(id uuid.UUID) (*entity.Product, error) {
-	product, err := p.ProductRepository.FindById(id)
+	product, err := p.productRepository.FindById(id)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (p ProductService) FindById(id uuid.UUID) (*entity.Product, error) {
 }
 
 func (p ProductService) Create(product *entity.Product) (*entity.Product, error) {
-	created, err := p.ProductRepository.Create(product)
+	created, err := p.productRepository.Create(product)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (p ProductService) Create(product *entity.Product) (*entity.Product, error)
 
 func (p ProductService) Update(targetId uuid.UUID, product *entity.Product) (*entity.Product, error) {
 	product.Id = targetId
-	updated, err := p.ProductRepository.Update(product)
+	updated, err := p.productRepository.Update(product)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +61,13 @@ func (p ProductService) Update(targetId uuid.UUID, product *entity.Product) (*en
 }
 
 func (p ProductService) Delete(id uuid.UUID) (*uuid.UUID, error) {
-	deletedID, err := p.ProductRepository.Delete(id)
+	deletedID, err := p.productRepository.Delete(id)
 	if err != nil {
 		return nil, err
 	}
 	return deletedID, nil
+}
+
+func NewProductService(productRepository *strg.IProductRepository) IProductService {
+	return &ProductService{productRepository: *productRepository}
 }

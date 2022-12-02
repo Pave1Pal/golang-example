@@ -17,22 +17,24 @@ func Run(pathToConfig string) {
 	db := strg.InitDB(appConfig.DBConfig)
 	defer db.Close()
 
-	purchaseMapper := mpr.PurchaseMapper{}
+	var purchaseMapper mpr.IPurchaseMapper = mpr.PurchaseMapper{}
 
-	purchaseRepository := strg.PurchaseRepository{DB: db}
-	productRepository := strg.ProductRepository{DB: db}
+	cartRepository := strg.NewCartRepository(db)
+	purchaseRepository := strg.NewPurchaseRepository(db)
+	productRepository := strg.NewProductRepository(db)
 
-	purchaseService := srv.PurchaseService{PurchaseRepository: purchaseRepository}
-	productService := srv.ProductService{ProductRepository: productRepository}
+	cartService := srv.NewCartService(&cartRepository)
+	purchaseService := srv.NewPurchaseService(&cartService, &purchaseRepository)
+	productService := srv.NewProductService(&productRepository)
 
-	indexController := cntr.IndexController{ProductService: productService}
-	purchaseController := cntr.PurchaseController{
-		PurchaseService: purchaseService,
-		Mapper:          purchaseMapper}
+	indexController := cntr.NewIndexController(&productService)
+	productController := cntr.NewProductController(&productService)
+	purchaseController := cntr.NewPurchaseController(&purchaseService, &purchaseMapper)
 
 	serverApp := server.Server{
-		IndexController:    indexController,
-		PurchaseController: purchaseController}
+		IndexController:    *indexController,
+		PurchaseController: *purchaseController,
+		ProductController:  *productController}
 
 	serverApp.Run(appConfig.ServerConfig)
 }

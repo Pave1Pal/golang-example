@@ -1,15 +1,17 @@
 dbconnection:
     host: localhost
     port: 5432
-    password: password
-    username: username
-    dbname: dbname
+    password: postgres
+    username: postgres
+    dbname: golang_db
     driver-name: postgres
+    migration-files-url: 'file:///home/pavelpal/projects/go-projects/TP-lab-2/resources/migration'
 
 server:
     host: localhost
-    port: 8080
+    port: 8090
     templates: '/home/pavelpal/projects/go-projects/TP-lab-2/resources/static/templates/'
+
 
     
     

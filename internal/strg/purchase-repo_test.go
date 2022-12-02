@@ -10,13 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
-func insertOnePurchase(db *sql.DB) uuid.UUID {
-	createdProductID := insertOneProduct(db)
+func insertPurchase(db *sql.DB) *entity.Purchase {
+
+	purchasePerson := "test"
+	purchaseAddress := "test"
+	createdTime := time.Now()
+	insertedCart := insertCart(db)
+
 	tx, err := db.Begin()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	s, err := tx.Prepare("INSERT INTO purchase(id, person, address, date, product_id) values($1, $2, $3, $4, $5)")
+	s, err := tx.Prepare("INSERT INTO purchase(id, person, address, date, cart_id) values($1, $2, $3, $4, $5)")
 	if err != nil {
 		tx.Rollback()
 		log.Fatal(err.Error())
@@ -24,12 +29,18 @@ func insertOnePurchase(db *sql.DB) uuid.UUID {
 	defer s.Close()
 
 	id := uuid.New()
-	if _, err := s.Exec(id, "test", "test", time.Now(), createdProductID); err != nil {
+	if _, err := s.Exec(id, purchasePerson, purchaseAddress, createdTime, insertedCart.Id); err != nil {
 		tx.Rollback()
 		log.Fatal(err.Error())
 	}
 	tx.Commit()
-	return id
+	return &entity.Purchase{
+		Id:      id,
+		Person:  purchasePerson,
+		Address: purchaseAddress,
+		Date:    createdTime,
+		Cart:    entity.Cart{Id: insertedCart.Id},
+	}
 }
 
 func clearPurchaseTable(db *sql.DB) {
@@ -42,7 +53,7 @@ func clearPurchaseTable(db *sql.DB) {
 		log.Fatal("test: " + err.Error())
 	}
 	tx.Commit()
-	clearProudctTable(db)
+	clearCartTable(db)
 }
 
 func TestFindAllPurchases(t *testing.T) {
@@ -50,10 +61,10 @@ func TestFindAllPurchases(t *testing.T) {
 	defer db.Close()
 	clearPurchaseTable(db)
 
-	id1 := insertOnePurchase(db)
-	id2 := insertOnePurchase(db)
+	id1 := insertPurchase(db).Id
+	id2 := insertPurchase(db).Id
 
-	var purchaseRps IPurchaseRepository = PurchaseRepository{DB: db}
+	purchaseRps := PurchaseRepository{DB: db}
 
 	ps, err := purchaseRps.FindAll()
 	if err != nil {
@@ -68,27 +79,29 @@ func TestFindAllPurchases(t *testing.T) {
 	}
 
 	if match != 2 {
-		t.Error("find less than 2 pu")
+		t.Error("find less than 2 purchase")
 	}
 
 	clearPurchaseTable(db)
+	clearCartTable(db)
+	clearProudctTable(db)
 }
 
 func TestFindPurchaseByID(t *testing.T) {
 	db := createDBConnection()
 	defer db.Close()
-	createdID := insertOnePurchase(db)
+	created := insertPurchase(db)
 
 	var p IPurchaseRepository = PurchaseRepository{db}
-	found, err := p.FindById(createdID)
+	found, err := p.FindById(created.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if found.Id != createdID {
-		t.Error("expected", createdID, "actual", found.Id)
+	if found.Id != created.Id {
+		t.Error("expected", created, "actual", found.Id)
 	}
-	if found.Product.Id == uuid.Nil {
+	if found.Cart.Id == uuid.Nil {
 		t.Error("product id is nil")
 	}
 
@@ -103,18 +116,16 @@ func TestCreatePurchase(t *testing.T) {
 
 	var p IPurchaseRepository = PurchaseRepository{db}
 
-	createdProductID := insertOneProduct(db)
-	createdID := uuid.New()
+	createCartId := insertCart(db).Id
 	createAddress := "Cool"
 	createPerson := "Cool Person"
 	createdDate := time.Now()
 
 	purchase := entity.Purchase{
-		Id:      createdID,
 		Address: createAddress,
 		Person:  createPerson,
 		Date:    createdDate,
-		Product: entity.Product{Id: createdProductID},
+		Cart:    entity.Cart{Id: createCartId},
 	}
 
 	createdPurchase, err := p.Create(&purchase)
@@ -122,53 +133,63 @@ func TestCreatePurchase(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	if createdPurchase.Id != createdID ||
-		createdPurchase.Address != createAddress ||
-		createdPurchase.Date.Day() != createdDate.Day() ||
-		createdPurchase.Date.Month() != createdDate.Month() ||
-		createdPurchase.Date.Year() != createdDate.Year() ||
-		createdPurchase.Person != createPerson ||
-		createdPurchase.Product.Id != createdProductID {
-		t.Error(
-			"expected Id", createdID, "actual id", createdPurchase.Id,
-			"expected product id", createdProductID, "actual product id", createdPurchase.Product.Id,
-			"expected date", createdDate, "eactual date", createdPurchase.Date,
-		)
+	if createdPurchase.Id == uuid.Nil {
+		t.Error("id for purchase does not created")
 	}
+	if createdPurchase.Address != createAddress {
+		t.Error("expected address: ", createAddress, "actual address: ", createdPurchase.Address)
+	}
+	if createdPurchase.Date.Day() != createdDate.Day() ||
+		createdPurchase.Date.Month() != createdDate.Month() ||
+		createdPurchase.Date.Year() != createdDate.Year() {
+		t.Error("expected date: ", createdDate, "actual date: ", createdPurchase.Date)
+	}
+
 	clearPurchaseTable(db)
+	clearCartTable(db)
+	clearProudctTable(db)
 }
 
 func TestUpdatePurchase(t *testing.T) {
 	db := createDBConnection()
 	defer db.Close()
-	createdID := insertOnePurchase(db)
+	created := insertPurchase(db)
+	createdID := created.Id
 
 	var repo IPurchaseRepository = PurchaseRepository{db}
 	person := "new person"
 	address := "new address"
-	newProdID := insertOneProduct(db)
 
 	updatePurchase := &entity.Purchase{
 		Id:      createdID,
 		Person:  person,
-		Address: address,
-		Product: entity.Product{Id: newProdID}}
+		Address: address}
 
 	updated, err := repo.Update(updatePurchase)
 	if err != nil {
 		t.Error("update return error")
 	}
-
-	if updated.Id != createdID || updated.Person != person || updated.Address != address || updated.Product.Id != newProdID {
-		t.Error("expected:", updatePurchase, "actual:", updated)
+	if updated.Id != createdID {
+		t.Error("expected id: ", createdID, "actual: ", updated.Id)
+	}
+	if updated.Person != person {
+		t.Error("expected person: ", person, "actual: ", updated.Person)
+	}
+	if updated.Address != address {
+		t.Error("expected address: ", address, "actual address: ", updated.Address)
+	}
+	if updated.Cart.Id != created.Cart.Id {
+		t.Error("expected cart id: ", created.Cart.Id, "actual cart id", updated.Cart.Id)
 	}
 	clearPurchaseTable(db)
+	clearCartTable(db)
+	clearProudctTable(db)
 }
 
 func TestDeletePurchase(t *testing.T) {
 	db := createDBConnection()
 	defer db.Close()
-	createdID := insertOnePurchase(db)
+	createdID := insertPurchase(db).Id
 
 	var pr IPurchaseRepository = PurchaseRepository{DB: db}
 

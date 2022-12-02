@@ -2,9 +2,18 @@ package main
 
 import (
 	"example.com/internal/app"
+	"flag"
 	_ "github.com/lib/pq"
+	"log"
+	"os"
 )
 
 func main() {
-	app.Run("/home/pavelpal/projects/go-projects/TP-lab-2/resources/config/app-config.yaml")
+	dir, _ := os.Getwd()
+	log.Println(dir)
+	configPath := flag.String("config", "", "path to configuration file")
+	flag.Parse()
+
+	log.Println(*configPath)
+	app.Run(*configPath)
 }
