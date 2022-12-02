@@ -64,7 +64,7 @@ func TestFindAllPurchases(t *testing.T) {
 	id1 := insertPurchase(db).Id
 	id2 := insertPurchase(db).Id
 
-	purchaseRps := PurchaseRepository{DB: db}
+	purchaseRps := NewPurchaseRepository(db)
 
 	ps, err := purchaseRps.FindAll()
 	if err != nil {
@@ -191,7 +191,7 @@ func TestDeletePurchase(t *testing.T) {
 	defer db.Close()
 	createdID := insertPurchase(db).Id
 
-	var pr IPurchaseRepository = PurchaseRepository{DB: db}
+	var pr IPurchaseRepository = NewPurchaseRepository(db)
 
 	deletedID, err := pr.Delete(createdID)
 	if err != nil {

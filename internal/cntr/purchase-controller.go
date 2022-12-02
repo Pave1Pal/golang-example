@@ -43,6 +43,7 @@ func (p PurchaseController) Create(ctx *gin.Context) {
 
 	if err := json.NewDecoder(requestBody).Decode(&purchaseDto); err != nil {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{"message": "bad request"})
+		return
 	}
 	purchase := p.mapper.FromDto(&purchaseDto)
 
